@@ -78,8 +78,8 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
       callback: async () => {
         await invoke(plugin, join(invocableScriptsFolder, scriptFile));
       },
-      id: `${COMMAND_NAME_PREFIX}${scriptFile}`,
-      name: `Invoke Script: ${scriptFile}`
+      id: `${COMMAND_NAME_PREFIX}${scriptFile.replace(/\.[jt]s$/, '')}`,
+      name: `Invoke: ${scriptFile.replace(/\.[jt]s$/, '')}`
     });
   }
 }

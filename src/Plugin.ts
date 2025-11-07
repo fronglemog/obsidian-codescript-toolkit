@@ -79,7 +79,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     this.addCommand({
       callback: () => selectAndInvokeScript(this),
       id: 'invokeScript',
-      name: 'Invoke script: <<Choose>>'
+      name: 'Invoke script...'
     });
 
     this.addCommand({

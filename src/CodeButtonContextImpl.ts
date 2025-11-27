@@ -5,7 +5,10 @@ import type {
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/CodeBlockMarkdownInformation';
 
-import { MarkdownRenderer } from 'obsidian';
+import {
+  Component,
+  MarkdownRenderer
+} from 'obsidian';
 import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import {
   insertAfterCodeBlock,
@@ -34,7 +37,7 @@ interface CodeButtonContextImplConstructorOptions {
   source: string;
 }
 
-export class CodeButtonContextImpl implements CodeButtonContext {
+export class CodeButtonContextImpl extends Component implements CodeButtonContext {
   public readonly app: App;
   public readonly config: CodeButtonBlockConfig;
   public readonly console: Console;
@@ -49,6 +52,7 @@ export class CodeButtonContextImpl implements CodeButtonContext {
   private readonly resultEl: HTMLElement;
 
   public constructor(options: CodeButtonContextImplConstructorOptions) {
+    super();
     this.app = options.plugin.app;
     this.config = options.config;
     this.markdownInfo = options.markdownInfo;
@@ -103,7 +107,7 @@ export class CodeButtonContextImpl implements CodeButtonContext {
   }
 
   public async renderMarkdown(markdown: string): Promise<void> {
-    await MarkdownRenderer.render(this.app, markdown, this.container, this.sourceFile.path, this.plugin);
+    await MarkdownRenderer.render(this.app, markdown, this.container, this.sourceFile.path, this);
   }
 
   public async replaceCodeButtonBlock(markdown: string, shouldPreserveLinePrefix?: boolean, shouldKeepGapWhenEmpty?: boolean): Promise<void> {

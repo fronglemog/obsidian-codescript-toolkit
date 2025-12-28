@@ -52,7 +52,7 @@ export async function invokeStartupScript(plugin: Plugin): Promise<void> {
 }
 
 export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
-  const COMMAND_NAME_PREFIX = 'invokeScriptFile-';
+  const COMMAND_NAME_PREFIX = 'invoke-';
   const commands = plugin.app.commands.listCommands().filter((c) => c.id.startsWith(`${plugin.manifest.id}:${COMMAND_NAME_PREFIX}`));
   for (const command of commands) {
     plugin.app.commands.removeCommand(command.id);

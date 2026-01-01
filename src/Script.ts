@@ -74,10 +74,9 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
   const scriptFiles = await getAllScriptFiles(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptFile of scriptFiles) {
-    const scriptFileName = scriptFile.split(/[\\/]/).filter(Boolean).pop()!;
-    const scriptFileNameClean = scriptFileName.replace(/\.[jt]s$/, '');
+    const scriptFileName = scriptFile.replace(/\.[jt]s$/, '');
     const commandId = `${COMMAND_NAME_PREFIX}${scriptFile.replace(/\.[jt]s$/, '')}`;
-    const commandName = `Invoke: ${scriptFileNameClean}`;
+    const commandName = `Invoke: ${scriptFileName}`;
     plugin.addCommand({
       callback: async () => {
         await invoke(plugin, join(invocableScriptsFolder, scriptFile));

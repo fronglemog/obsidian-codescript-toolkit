@@ -1,6 +1,6 @@
 {
   "name": "fix-require-modules",
-  "version": "11.3.3",
+  "version": "11.4.0",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself.",
   "scripts": {
     "build": "obsidian-dev-utils build",
@@ -26,8 +26,8 @@
   "devDependencies": {
     "@babel/standalone": "latest",
     "@babel/types": "latest",
-    "@commitlint/cli": "^20.2.0",
-    "@commitlint/config-conventional": "^20.2.0",
+    "@commitlint/cli": "^20.3.0",
+    "@commitlint/config-conventional": "^20.3.0",
     "@commitlint/types": "^20.2.0",
     "@types/babel__standalone": "latest",
     "@types/node": "latest",

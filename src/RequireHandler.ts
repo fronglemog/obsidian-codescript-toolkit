@@ -51,7 +51,9 @@ import {
   EMPTY_MODULE_SYMBOL
 } from './CachedModuleProxyHandler.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
+import { createCodeScriptToolkitModule } from './CodeScriptToolkitModuleImpl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
+import { registerObsidianDevUtilsModule } from './ObsidianDevUtilsModule.ts';
 import { SPECIAL_MODULE_NAMES } from './SpecialModuleNames.ts';
 import {
   CacheInvalidationMode,
@@ -168,8 +170,13 @@ export abstract class RequireHandler {
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
-  protected plugin?: Plugin;
   protected vaultAbsolutePath?: string;
+  protected get plugin(): Plugin {
+    if (!this._plugin) {
+      throw new Error('Plugin is not registered.');
+    }
+    return this._plugin;
+  }
 
   protected get requireEx(): RequireExFn {
     if (!this._requireEx) {
@@ -178,14 +185,12 @@ export abstract class RequireHandler {
     return this._requireEx;
   }
 
+  private _plugin?: Plugin;
+
   private _requireEx?: RequireExFn;
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
-
-  public constructor() {
-    this.initSpecialModuleFactories();
-  }
 
   public clearCache(): void {
     this.moduleTimestamps.clear();
@@ -201,8 +206,10 @@ export abstract class RequireHandler {
     }
   }
 
-  public register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
-    this.plugin = plugin;
+  public async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+    this._plugin = plugin;
+    await this.initSpecialModuleFactories();
+
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(plugin.app.vault.adapter.basePath);
     this.originalRequire = window.require;
@@ -347,7 +354,7 @@ export abstract class RequireHandler {
 
   protected getParentPathFromCallStack(callerLineIndex = CALLER_LINE_INDEX): null | string {
     const callStackLines = new Error().stack?.split('\n') ?? [];
-    this.plugin?.consoleDebug('callStackLines', { callStackLines });
+    this.plugin.consoleDebug('callStackLines', { callStackLines });
     const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
@@ -698,7 +705,7 @@ export abstract class RequireHandler {
   }
 
   private async getRootFoldersAsync(folder: string): Promise<string[]> {
-    const modulesRootFolder = this.plugin?.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
@@ -738,9 +745,11 @@ export abstract class RequireHandler {
     }
   }
 
-  private initSpecialModuleFactories(): void {
-    this.specialModuleFactories.set('obsidian/app', () => this.plugin?.app);
+  private async initSpecialModuleFactories(): Promise<void> {
+    this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
+    this.specialModuleFactories.set('codescript-toolkit', () => createCodeScriptToolkitModule(this.plugin));
+    await registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));
@@ -1073,7 +1082,7 @@ export abstract class RequireHandler {
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin?.settings.modulesRoot ?? '', trimStart(id, MODULES_ROOT_PATH_PREFIX)),
+        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot, trimStart(id, MODULES_ROOT_PATH_PREFIX)),
         resolvedType: ResolvedType.Path
       };
     }
@@ -1082,7 +1091,7 @@ export abstract class RequireHandler {
   }
 
   private resolveRelativeOrModule(id: string, parentPath?: string): ResolveResult {
-    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin?.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
+    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
     if (!isAbsolute(parentPath)) {
       parentPath = join(this.vaultAbsolutePath ?? '', parentPath);
     }

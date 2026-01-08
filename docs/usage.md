@@ -21,6 +21,8 @@ Most of the examples below will be shown using [`require()`][require], but you c
 - [Built-in Modules](./built-in-modules.md)
 - [`obsidian/app` module](./obsidian-app-module.md)
 - [`obsidian/specialModuleNames` module](./obsidian-special-module-names.md)
+- [`obsidian/dev-utils` module](./obsidian-dev-utils.md)
+- [`codescript-toolkit` module](./codescript-toolkit.md)
 - [Additional desktop modules](./additional-desktop-modules.md)
 - [Relative path](./relative-path.md)
 - [Root-relative path](./root-relative-path.md)
